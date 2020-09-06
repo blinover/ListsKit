@@ -1,6 +1,0 @@
-module Pods_ListsKitExample {
-  umbrella header "Pods-ListsKitExample-umbrella.h"
-
-  export *
-  module * { export * }
-}
