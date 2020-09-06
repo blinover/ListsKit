@@ -1,0 +1,6 @@
+module Pods_ListsKit {
+  umbrella header "Pods-ListsKit-umbrella.h"
+
+  export *
+  module * { export * }
+}
