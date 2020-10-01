@@ -51,10 +51,11 @@ open class LKTableController: NSObject, UITableViewDelegate {
 			cellModel.onClickCell?(cellModel)
 		}).disposed(by: disposeBag)
 		
-		tableView.rx.itemSelected.bind { (indexPath) in
-			tableView.deselectRow(at: indexPath, animated: true)
-		}.disposed(by: disposeBag)
-		
+        tableView.rx.itemSelected
+            .bind { [weak tableView] in
+                tableView?.deselectRow(at: $0, animated: true)
+            }
+            .disposed(by: disposeBag)
 	}
 	
 	public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
