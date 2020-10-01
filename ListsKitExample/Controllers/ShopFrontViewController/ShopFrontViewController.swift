@@ -23,6 +23,9 @@ class ShopFrontViewController: UIViewController {
 	}
 	
 	private func setupRx() {
-		viewModel.cellModels.bind(to: tableController.cellModels).disposed(by: disposeBag)
+        viewModel.cellModels
+            .asDriver(onErrorJustReturn: [])
+            .drive(tableController.cellModels)
+            .disposed(by: disposeBag)
 	}
 }

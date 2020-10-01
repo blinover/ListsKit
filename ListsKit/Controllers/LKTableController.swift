@@ -27,34 +27,37 @@ open class LKTableController: NSObject, UITableViewDelegate {
 			.setDelegate(self)
 			.disposed(by: disposeBag)
 		
-		cellModels.asObservable()
-			.bind(to: tableView.rx.items) { tableView, _, model in
-				tableView.registerNib(cellName: model.cellIdentifier)
-				
-				guard let cell = tableView.dequeueReusableCell(withIdentifier: model.cellIdentifier) as? LKTableViewCell else { abort() }
-				
-				cell.configureCell(model)
-				
-				if let collectionCell = cell as? LKTableCollectionViewCell {
-					collectionCell.frame = tableView.bounds;
-					
-					collectionCell.setNeedsLayout()
-					collectionCell.layoutIfNeeded()
-					
-					collectionCell.updateCollectionViewHeight()
-				}
-				
-				return cell
-		}.disposed(by: disposeBag)
+        cellModels
+            .asDriver(onErrorJustReturn: [])
+            .drive(tableView.rx.items) { tableView, _, model in
+                tableView.registerNib(cellName: model.cellIdentifier)
+
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: model.cellIdentifier) as? LKTableViewCell else { abort() }
+
+                cell.configureCell(model)
+
+                if let collectionCell = cell as? LKTableCollectionViewCell {
+                    collectionCell.frame = tableView.bounds;
+
+                    collectionCell.setNeedsLayout()
+                    collectionCell.layoutIfNeeded()
+
+                    collectionCell.updateCollectionViewHeight()
+                }
+
+                return cell
+            }
+            .disposed(by: disposeBag)
 		
 		tableView.rx.modelSelected(LKCellModel.self).subscribe(onNext: { (cellModel) in
 			cellModel.onClickCell?(cellModel)
 		}).disposed(by: disposeBag)
 		
-		tableView.rx.itemSelected.bind { (indexPath) in
-			tableView.deselectRow(at: indexPath, animated: true)
-		}.disposed(by: disposeBag)
-		
+        tableView.rx.itemSelected
+            .bind { [weak tableView] in
+                tableView?.deselectRow(at: $0, animated: true)
+            }
+            .disposed(by: disposeBag)
 	}
 	
 	public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -96,7 +99,7 @@ open class LKTableController: NSObject, UITableViewDelegate {
 private extension UITableView {
 	
 	func registerNib(cellName: String) {
-		self.register(UINib(nibName: cellName, bundle: Bundle.main), forCellReuseIdentifier: cellName)
+        self.register(UINib(nibName: cellName, bundle: .init(for: LKTableController.self)), forCellReuseIdentifier: cellName)
 	}
 	
 }

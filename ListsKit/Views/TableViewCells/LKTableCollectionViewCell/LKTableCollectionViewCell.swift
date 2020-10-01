@@ -31,17 +31,21 @@ open class LKTableCollectionViewCell: LKTableViewCell {
 				
 		collectionView.rx.setDelegate(self).disposed(by: disposeBag)
 		
-		structureModel.cellModels
-			.bind(to: collectionView.rx.items) { collectionView, row, model in
-				collectionView.registerNib(cellName: model.cellIdentifier)
-				guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: model.cellIdentifier, for: IndexPath(row: row, section: 0)) as? LKCollectionViewCell else { fatalError() }
-				cell.configureCell(model)
-				return cell
-		}.disposed(by: disposeBag)
+        structureModel.cellModels
+            .asDriver(onErrorJustReturn: [])
+            .drive(collectionView.rx.items) { collectionView, row, model in
+                collectionView.registerNib(cellName: model.cellIdentifier)
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: model.cellIdentifier, for: IndexPath(row: row, section: 0)) as? LKCollectionViewCell else { fatalError() }
+                cell.configureCell(model)
+                return cell
+            }
+            .disposed(by: disposeBag)
 		
-		collectionView.rx.modelSelected(LKCellModel.self).subscribe(onNext: { (model) in
-			model.onClickCell?(model)
-		}).disposed(by: disposeBag)
+        collectionView.rx
+            .modelSelected(LKCellModel.self).subscribe(onNext: { (model) in
+                model.onClickCell?(model)
+            })
+            .disposed(by: disposeBag)
 	}
 	
 	public override func awakeFromNib() {

@@ -23,10 +23,16 @@ class ExamplesViewController: UIViewController {
 	}
 	
 	private func setupRx() {
-		viewModel.cellModels.bind(to: tableController.cellModels).disposed(by: disposeBag)
-		viewModel.showViewController.subscribe(onNext: { [weak self] (viewController) in
-			self?.navigationController?.show(viewController, sender: self)
-		}).disposed(by: disposeBag)
+        viewModel.cellModels
+            .asDriver(onErrorJustReturn: [])
+            .drive(tableController.cellModels)
+            .disposed(by: disposeBag)
+        viewModel.showViewController
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(onNext: { [weak self] (viewController) in
+                self?.navigationController?.show(viewController, sender: self)
+            })
+            .disposed(by: disposeBag)
 	}
 
 }
